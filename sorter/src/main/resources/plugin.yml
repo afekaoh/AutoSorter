@@ -1,0 +1,10 @@
+name: ChestAutoSorter
+version: ${project.version}
+main: com.autosorter.AutoSorter
+api-version: '1.21.5'
+authors: ["Adam S.", "Avital G."]
+description: Automatically sorts items from input chests.
+commands:
+  sortchest:
+    description: Opens the configuration GUI for the chest you are looking at.
+    usage: /sortchest
