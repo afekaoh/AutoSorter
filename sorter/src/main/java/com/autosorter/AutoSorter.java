@@ -3,6 +3,7 @@ package com.autosorter;
 import com.autosorter.commands.SorterCommand;
 import com.autosorter.data.ChestDataManager;
 import com.autosorter.gui.GuiManager;
+import com.autosorter.listeners.ChestDestructionListener;
 import com.autosorter.listeners.GuiListener;
 import com.autosorter.listeners.RoutingListener;
 import com.autosorter.model.RouterManager;
@@ -36,8 +37,11 @@ public class AutoSorter extends JavaPlugin {
             getLogger().severe("Failed to load chest data: " + e.getMessage());
         }
         // Initialize Managers
-        this.chestDataManager = new ChestDataManager(this, chestSets.getInputChests(),
-                chestSets.getReceiverChests(), chestSets.getOverflowChests(), chestSets.getRoutingMap());
+        this.chestDataManager = new ChestDataManager(
+                this,
+                chestSets.getInputChests(),
+                chestSets.getReceiverChestsFilterMap(),
+                chestSets.getOverflowChests());
         this.guiManager = new GuiManager(this, this.chestDataManager);
         this.routerManager = new RouterManager(this, this.chestDataManager);
 
@@ -55,16 +59,15 @@ public class AutoSorter extends JavaPlugin {
                 .getPluginManager()
                 .registerEvents(new GuiListener(this, this.chestDataManager, this.guiManager), this);
 
-        // // Register Chest Placement Listener
-        // getServer()
-        // .getPluginManager()
-        // .registerEvents(new ChestPlacementListener(this, this.chestDataManager),
-        // this);
+        // Register Chest Breaking Listener
+        getServer()
+                .getPluginManager()
+                .registerEvents(new ChestDestructionListener(this.chestDataManager), this);
 
         // Register Routing Listener
         getServer()
                 .getPluginManager()
-                .registerEvents(new RoutingListener(chestDataManager, routerManager), this);
+                .registerEvents(new RoutingListener(this, chestDataManager, routerManager), this);
     }
 
     @Override
@@ -72,10 +75,9 @@ public class AutoSorter extends JavaPlugin {
         try {
             // Save any data if needed
             var inputChests = this.chestDataManager.getInputChests();
-            var receiverChests = this.chestDataManager.getReceiverChests();
+            var receiverChests = this.chestDataManager.getReceiverChestsFilterMap();
             var overflowChests = this.chestDataManager.getOverflowChests();
-            var routingMap = this.chestDataManager.getRoutMap();
-            persistenceManager.saveChestsAndRouting(inputChests, receiverChests, overflowChests, routingMap);
+            persistenceManager.saveChestsAndRouting(inputChests, receiverChests, overflowChests);
         } catch (IOException e) {
             getLogger().severe("Failed to save chest data: " + e.getMessage());
         }

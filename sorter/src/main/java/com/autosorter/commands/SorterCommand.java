@@ -29,7 +29,7 @@ public class SorterCommand implements CommandExecutor {
             return true;
         }
         if (args.length > 0 && args[0].equalsIgnoreCase("list")) {
-            var rm = plugin.getChestDataManager().getRoutMap();
+            var rm = plugin.getChestDataManager().getRouteMap();
             if (rm.isEmpty()) {
                 player.sendMessage("§cNo chests configured yet.");
                 return true;

@@ -26,12 +26,12 @@ public class RouterManager {
     public void startRoutingTaskIfNeeded(SmartChest chest) {
         Location loc = chest.getLocation();
         if (activeRoutingTasks.contains(loc)) {
-            plugin.getLogger().info("Routing task already active for chest at " + loc);
+            // plugin.getLogger().info("Routing task already active for chest at " + loc);
             return;
         }
 
         activeRoutingTasks.add(loc);
-        plugin.getLogger().info("Starting routing task for chest at " + loc);
+        // plugin.getLogger().info("Starting routing task for chest at " + loc);
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -60,19 +60,14 @@ public class RouterManager {
                             break; // only route one item per tick to avoid spikes
                         } else {
                             // If we can't route to overflow, we can log or handle it as needed
-                            plugin.getLogger().warning("Could not route item: " + single.getType() +
-                                    " from chest at " + loc + ". Consider manual handling.");
+                            // plugin.getLogger().warning("Could not route item: " + single.getType() +
+                            // " from chest at " + loc + ". Consider manual handling.");
                         }
                     }
                 }
 
                 // Stop if inventory is empty or nothing routed
                 if (inv.isEmpty() || !routedSomething) {
-                    if (inv.isEmpty())
-                        plugin.getLogger().info("Stopping routing task for chest at " + loc + " - inventory is empty.");
-                    else
-                        plugin.getLogger().info(
-                                "Stopping routing task for chest at " + loc + " - nothing routed.");
                     activeRoutingTasks.remove(loc);
                     cancel();
                 }
@@ -90,12 +85,9 @@ public class RouterManager {
     }
 
     public boolean tryRouteItemToTarget(Inventory sourceInv, ItemStack item, SmartChest target) {
-        plugin.getLogger().info("Trying to route item: " + item.getType());
 
         if (target == null)
             return false;
-
-        plugin.getLogger().info("Routing to target: " + target.getLocation());
 
         Inventory targetInv = target.getInventory();
         HashMap<Integer, ItemStack> leftover = targetInv.addItem(item.clone());

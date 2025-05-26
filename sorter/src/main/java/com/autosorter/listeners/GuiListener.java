@@ -77,7 +77,7 @@ public class GuiListener implements Listener {
         if (newType != null && newType != oldType) {
             dataManager.setChestType(chest, newType);
             GuiManager.markIgnoreClose(player.getUniqueId());
-            Bukkit.getScheduler().runTask(plugin, () -> guiManager.openConfigGui(player, chest));
+            Bukkit.getScheduler().runTaskLater(plugin, () -> guiManager.openConfigGui(player, chest), 1L);
             return;
         }
 

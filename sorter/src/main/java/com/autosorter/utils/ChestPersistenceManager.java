@@ -14,6 +14,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.inventory.ItemStack;
 
 import com.autosorter.AutoSorter;
 import com.autosorter.model.SmartChest;
@@ -39,8 +40,9 @@ public class ChestPersistenceManager {
         return new Location(world, x, y, z);
     }
 
-    public void saveChestsAndRouting(Set<SmartChest> inputChests, Set<SmartChest> receiverChests,
-            Set<SmartChest> overflowChests, Map<Material, Set<SmartChest>> routingMap) throws IOException {
+    public void saveChestsAndRouting(Set<SmartChest> inputChests,
+            Map<SmartChest, Set<ItemStack>> receiverChestFilterMap,
+            Set<SmartChest> overflowChests) throws IOException {
         YamlConfiguration config = new YamlConfiguration();
 
         config.set("input-chests", inputChests
@@ -48,19 +50,37 @@ public class ChestPersistenceManager {
                 .map(c -> serializeLocation(c.getLocation()))
                 .toList());
 
-        config.set("receiver-chests", receiverChests.stream().map(c -> serializeLocation(c.getLocation())).toList());
+        // config.set("receiver-chests", receiverChests.stream().map(c ->
+        // serializeLocation(c.getLocation())).toList());
         config.set("overflow-chests", overflowChests.stream().map(c -> serializeLocation(c.getLocation())).toList());
 
-        Map<String, List<String>> routingSection = new HashMap<>();
-        for (var entry : routingMap.entrySet()) {
-            Material mat = entry.getKey();
-            Set<SmartChest> chests = entry.getValue();
-            List<String> locs = chests.stream().map(c -> serializeLocation(c.getLocation())).toList();
-            routingSection.put(mat.name(), locs);
+        Map<String, List<String>> receivingSection = new HashMap<>();
+        for (var entry : receiverChestFilterMap.entrySet()) {
+            String chestLocation = serializeLocation(entry.getKey().getLocation());
+            Set<ItemStack> filters = entry.getValue();
+            List<String> filtersAsStrings = filters.stream().map(c -> serializeItemStack(c)).toList();
+            receivingSection.put(chestLocation, filtersAsStrings);
         }
-        config.set("routing-map", routingSection);
+        config.set("receiving-map", receivingSection);
 
         config.save(this.configFile);
+    }
+
+    private String serializeItemStack(ItemStack item) {
+        if (item == null || item.getType() == Material.AIR) {
+            return "AIR";
+        }
+        return item.getType().name() + ":" + item.getAmount();
+    }
+
+    private ItemStack deserializeItemStack(String s) {
+        if ("AIR".equals(s)) {
+            return new ItemStack(Material.AIR);
+        }
+        String[] parts = s.split(":");
+        Material material = Material.valueOf(parts[0]);
+        int amount = Integer.parseInt(parts[1]);
+        return new ItemStack(material, amount);
     }
 
     public SetTransfer loadChestsAndRouting() throws IOException {
@@ -73,12 +93,12 @@ public class ChestPersistenceManager {
                         .map(l -> new SmartChest(l.getBlock().getState()))
                         .toList());
 
-        var receiverChests = new HashSet<>(
-                config.getStringList("receiver-chests")
-                        .stream()
-                        .map(s -> deserializeLocation(s))
-                        .map(l -> new SmartChest(l.getBlock().getState()))
-                        .toList());
+        // var receiverChests = new HashSet<>(
+        // config.getStringList("receiver-chests")
+        // .stream()
+        // .map(s -> deserializeLocation(s))
+        // .map(l -> new SmartChest(l.getBlock().getState()))
+        // .toList());
 
         var overflowChests = new HashSet<>(
                 config.getStringList("overflow-chests")
@@ -87,52 +107,45 @@ public class ChestPersistenceManager {
                         .map(l -> new SmartChest(l.getBlock().getState()))
                         .toList());
 
-        ConfigurationSection routing = config.getConfigurationSection("routing-map");
-        Map<Material, Set<SmartChest>> routingMap = new HashMap<>();
-        if (routing != null) {
-            for (String matKey : routing.getKeys(false)) {
-                Material mat = Material.valueOf(matKey);
-                Set<SmartChest> chests = new HashSet<>();
-                routing.getStringList(matKey)
+        ConfigurationSection receivers = config.getConfigurationSection("receiving-map");
+        Map<SmartChest, Set<ItemStack>> receiverChestFilterMap = new HashMap<>();
+        if (receivers != null) {
+            for (String locationKey : receivers.getKeys(false)) {
+                Location loc = deserializeLocation(locationKey);
+                SmartChest chest = new SmartChest(loc.getBlock().getState());
+                Set<ItemStack> filters = new HashSet<>();
+                receivers.getStringList(locationKey)
                         .stream()
-                        .map(s -> deserializeLocation(s))
-                        .map(l -> new SmartChest(l.getBlock().getState()))
-                        .forEach(chests::add);
-                routingMap.put(mat, chests);
+                        .map(s -> deserializeItemStack(s))
+                        .forEach(filters::add);
+                receiverChestFilterMap.put(chest, filters);
             }
         }
-        return new SetTransfer(inputChests, receiverChests, overflowChests, routingMap);
+        return new SetTransfer(inputChests, receiverChestFilterMap, overflowChests);
     }
 
     public class SetTransfer {
         private final Set<SmartChest> inputChests;
-        private final Set<SmartChest> receiverChests;
+        private final Map<SmartChest, Set<ItemStack>> receiverChestsFilterMap;
         private final Set<SmartChest> overflowChests;
-        private final Map<Material, Set<SmartChest>> routingMap;
 
-        public SetTransfer(Set<SmartChest> inputChests, Set<SmartChest> receiverChests,
-                Set<SmartChest> overflowChests, Map<Material, Set<SmartChest>> routingMap) {
+        public SetTransfer(Set<SmartChest> inputChests, Map<SmartChest, Set<ItemStack>> receiverChestsFilterMap,
+                Set<SmartChest> overflowChests) {
             this.inputChests = inputChests;
-            this.receiverChests = receiverChests;
+            this.receiverChestsFilterMap = receiverChestsFilterMap;
             this.overflowChests = overflowChests;
-            this.routingMap = routingMap;
         }
 
         public Set<SmartChest> getInputChests() {
             return inputChests;
         }
 
-        public Set<SmartChest> getReceiverChests() {
-            return receiverChests;
+        public Map<SmartChest, Set<ItemStack>> getReceiverChestsFilterMap() {
+            return receiverChestsFilterMap;
         }
 
         public Set<SmartChest> getOverflowChests() {
             return overflowChests;
         }
-
-        public Map<Material, Set<SmartChest>> getRoutingMap() {
-            return routingMap;
-        }
-
     }
 }
