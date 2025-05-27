@@ -1,16 +1,13 @@
 package com.autosorter.commands;
 
 import com.autosorter.AutoSorter;
-import com.autosorter.data.ChestDataManager;
 import com.autosorter.gui.GuiManager;
 import com.autosorter.model.SmartChest;
-import com.autosorter.utils.ChestPersistenceManager;
 
 import java.io.IOException;
 
 import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
-import org.bukkit.block.Chest;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -68,15 +65,5 @@ public class SorterCommand implements CommandExecutor {
         guiManager.openConfigGui(player, chest.get());
         return true;
 
-        // try {
-        // // Check if the target block is a chest
-        // SmartChest chest = new SmartChest(targetBlock);
-        // guiManager.openConfigGui(player, chest);
-        // return true;
-        // } catch (IllegalArgumentException e) {
-        // player.sendMessage("§cYou must be looking directly at a chest to configure
-        // it.");
-        // return true;
-        // }
     }
 }

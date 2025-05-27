@@ -29,36 +29,29 @@ public class SmartChest {
         }
     }
 
-    // public SmartChest(Block block) {
-    // if (!(block instanceof InventoryHolder tempHolder)) {
-    // throw new IllegalArgumentException("State must be a Chest or DoubleChest");
-    // }
-    // var holder = tempHolder.getInventory().getHolder();
-
-    // if (holder instanceof DoubleChest doubleChest) {
-    // this.doubleChest = doubleChest;
-    // this.singleChest = null;
-    // } else if (holder instanceof Chest chest) {
-    // this.doubleChest = null;
-    // this.singleChest = chest;
-    // } else {
-    // throw new IllegalArgumentException("Holder must be a Chest or DoubleChest");
-    // }
-    // }
-
     public static Optional<SmartChest> from(Block block) {
-        if (!(block instanceof InventoryHolder tempHolder)) {
+        if (block == null) {
+            return Optional.empty();
+        }
+        // Check if the block is an InventoryHolder
+        var state = block.getState();
+        if (!(state instanceof InventoryHolder tempHolder)) {
             return Optional.empty();
         }
         return from(tempHolder);
     }
 
     public static Optional<SmartChest> from(InventoryHolder holder) {
-        var newHolder = holder.getInventory().getHolder();
-        if (holder == null || !(newHolder instanceof DoubleChest || newHolder instanceof Chest)) {
+        if (holder == null) {
             return Optional.empty();
         }
-        return Optional.of(new SmartChest(holder));
+        // Check if the holder is an InventoryHolder
+        var newHolder = holder.getInventory().getHolder();
+        if (!(newHolder instanceof DoubleChest || newHolder instanceof Chest)) {
+            return Optional.empty();
+        }
+        var chest = new SmartChest(holder);
+        return Optional.of(chest);
     }
 
     public Inventory getInventory() {

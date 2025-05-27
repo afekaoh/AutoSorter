@@ -26,12 +26,10 @@ public class RouterManager {
     public void startRoutingTaskIfNeeded(SmartChest chest) {
         Location loc = chest.getLocation();
         if (activeRoutingTasks.contains(loc)) {
-            // plugin.getLogger().info("Routing task already active for chest at " + loc);
             return;
         }
 
         activeRoutingTasks.add(loc);
-        // plugin.getLogger().info("Starting routing task for chest at " + loc);
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -58,10 +56,6 @@ public class RouterManager {
                             item.setAmount(item.getAmount() - 1);
                             routedSomething = true;
                             break; // only route one item per tick to avoid spikes
-                        } else {
-                            // If we can't route to overflow, we can log or handle it as needed
-                            // plugin.getLogger().warning("Could not route item: " + single.getType() +
-                            // " from chest at " + loc + ". Consider manual handling.");
                         }
                     }
                 }
@@ -77,17 +71,18 @@ public class RouterManager {
 
     public boolean tryRouteItemToReciver(Inventory sourceInv, ItemStack item) {
 
-        return tryRouteItemToTarget(sourceInv, item, dataManager.getBestRoutingTargetReciver(item.getType()));
+        return tryRouteItemToTarget(sourceInv, item, dataManager.getBestRoutingTargetReciver(item));
     }
 
     public boolean tryRouteItemToOverFlow(Inventory sourceInv, ItemStack item) {
-        return tryRouteItemToTarget(sourceInv, item, dataManager.getBestRoutingTargetOverFlow(item.getType()));
+        return tryRouteItemToTarget(sourceInv, item, dataManager.getBestRoutingTargetOverFlow(item));
     }
 
     public boolean tryRouteItemToTarget(Inventory sourceInv, ItemStack item, SmartChest target) {
 
-        if (target == null)
+        if (target == null) {
             return false;
+        }
 
         Inventory targetInv = target.getInventory();
         HashMap<Integer, ItemStack> leftover = targetInv.addItem(item.clone());

@@ -170,40 +170,42 @@ public class ChestDataManager {
 
     }
 
-    public SmartChest getBestRoutingTargetReciver(Material material) {
-        var chests = routingMap.get(material);
+    public SmartChest getBestRoutingTargetReciver(ItemStack item) {
+        var chests = routingMap.get(item.getType());
         if (chests == null || chests.isEmpty()) {
             return null; // No chests available for this material
         }
         return chests.stream()
-                .filter(c -> hasEmptySpace(material, c))
+                .filter(c -> hasEmptySpace(item, c))
                 .sorted(Comparator.comparing((SmartChest c) -> c.getLocation().getWorld().getName())
                         .thenComparing(c -> c.getLocation().getBlockY())
                         .thenComparing(c -> c.getLocation().getBlockX())
                         .thenComparing(c -> c.getLocation().getBlockZ()))
-                .findFirst().orElse(null);
+                .findFirst()
+                .orElse(null);
     }
 
-    private boolean hasEmptySpace(Material material, SmartChest c) {
+    private boolean hasEmptySpace(ItemStack itemToSort, SmartChest c) {
         int firstEmpty = c.getInventory().firstEmpty();
-        if (firstEmpty >= 0)
+        if (firstEmpty >= 0) {
             return true; // Chest has space
-
+        }
         var contents = c.getInventory().getContents();
         for (ItemStack item : contents) {
-            if (item != null && item.getType() == material && item.getAmount() < item.getMaxStackSize()) {
+
+            if (item != null && item.isSimilar(itemToSort) && item.getAmount() < item.getMaxStackSize()) {
                 return true; // Chest has space for this material
             }
         }
         return false; // No space for this material
     }
 
-    public SmartChest getBestRoutingTargetOverFlow(Material material) {
+    public SmartChest getBestRoutingTargetOverFlow(ItemStack itemToSort) {
         if (overflowChests.isEmpty()) {
             return null; // No overflow chests available
         }
         return overflowChests.stream()
-                .filter(c -> hasEmptySpace(material, c))
+                .filter(c -> hasEmptySpace(itemToSort, c))
                 .sorted(Comparator.comparing((SmartChest c) -> c.getLocation().getWorld().getName())
                         .thenComparing(c -> c.getLocation().getBlockY())
                         .thenComparing(c -> c.getLocation().getBlockX())

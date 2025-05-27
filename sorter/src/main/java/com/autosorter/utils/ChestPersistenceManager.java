@@ -88,7 +88,7 @@ public class ChestPersistenceManager {
                 config.getStringList("input-chests")
                         .stream()
                         .map(s -> deserializeLocation(s))
-                        .map(l -> SmartChest.from(l.getBlock()).orElseGet(null))
+                        .map(l -> SmartChest.from(l.getBlock()).orElseGet(() -> null))
                         .filter(c -> c != null)
                         .toList());
 
@@ -96,7 +96,7 @@ public class ChestPersistenceManager {
                 config.getStringList("overflow-chests")
                         .stream()
                         .map(s -> deserializeLocation(s))
-                        .map(l -> SmartChest.from(l.getBlock()).orElseGet(null))
+                        .map(l -> SmartChest.from(l.getBlock()).orElseGet(() -> null))
                         .filter(c -> c != null)
                         .toList());
 
