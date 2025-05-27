@@ -35,19 +35,29 @@ public class RoutingListener implements Listener {
         if (topInventory == null)
             return;
 
-        try {
-            SmartChest chest = new SmartChest(topInventory.getHolder());
-
-            if (dataManager.getChestType(chest) != ChestType.INPUT)
-                return;
-
-            Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                routerManager.startRoutingTaskIfNeeded(chest);
-            }, 1L);
-        } catch (IllegalArgumentException e) {
-            // If top inventory is not a chest
+        var chest = SmartChest.from(topInventory.getHolder());
+        if (chest.isEmpty())
+            return; // Not a valid chest
+        // If the chest is not an input chest, we ignore this event
+        if (dataManager.getChestType(chest.get()) != ChestType.INPUT)
             return;
-        }
+
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            routerManager.startRoutingTaskIfNeeded(chest.get());
+        });
+        // try {
+        // SmartChest chest = new SmartChest(topInventory.getHolder());
+
+        // if (dataManager.getChestType(chest) != ChestType.INPUT)
+        // return;
+
+        // Bukkit.getScheduler().runTaskLater(plugin, () -> {
+        // routerManager.startRoutingTaskIfNeeded(chest);
+        // }, 1L);
+        // } catch (IllegalArgumentException e) {
+        // // If top inventory is not a chest
+        // return;
+        // }
     }
 
     @EventHandler
@@ -56,38 +66,62 @@ public class RoutingListener implements Listener {
         if (!(event.getWhoClicked() instanceof org.bukkit.entity.Player player))
             return;
         Inventory dragged = event.getInventory();
-        try {
-            if (dragged == null)
-                return;
-            SmartChest chest = new SmartChest(dragged.getHolder());
-            if (dataManager.getChestType(chest) != ChestType.INPUT)
-                return;
-            Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                routerManager.startRoutingTaskIfNeeded(chest);
-            }, 1L);
-        } catch (IllegalArgumentException e) {
-            // If the holder is not a Chest, we ignore this event
+
+        var chest = SmartChest.from(dragged.getHolder());
+        if (chest.isEmpty())
+            return; // Not a valid chest
+        // If the chest is not an input chest, we ignore this event
+        if (dataManager.getChestType(chest.get()) != ChestType.INPUT)
             return;
-        }
+
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            routerManager.startRoutingTaskIfNeeded(chest.get());
+        });
+
+        // try {
+        // if (dragged == null)
+        // return;
+        // SmartChest chest = new SmartChest(dragged.getHolder());
+        // if (dataManager.getChestType(chest) != ChestType.INPUT)
+        // return;
+        // Bukkit.getScheduler().runTaskLater(plugin, () -> {
+        // routerManager.startRoutingTaskIfNeeded(chest);
+        // }, 1L);
+        // } catch (IllegalArgumentException e) {
+        // // If the holder is not a Chest, we ignore this event
+        // return;
+        // }
     }
 
     @EventHandler
     public void onInventoryMoveItem(InventoryMoveItemEvent event) {
         Inventory dest = event.getDestination();
         InventoryHolder holder = dest.getHolder();
-        try {
-            if (holder == null)
-                return;
-            SmartChest chest = new SmartChest(holder);
-            if (dataManager.getChestType(chest) != ChestType.INPUT)
-                return;
-            // Valid move into an input chest — route the item
-            Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                routerManager.startRoutingTaskIfNeeded(chest);
-            }, 1L);
-        } catch (IllegalArgumentException e) {
-            // If the holder is not a Chest, we ignore this event
+
+        var chest = SmartChest.from(holder);
+        if (chest.isEmpty())
+            return; // Not a valid chest
+        // If the chest is not an input chest, we ignore this event
+        if (dataManager.getChestType(chest.get()) != ChestType.INPUT)
             return;
-        }
+
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            routerManager.startRoutingTaskIfNeeded(chest.get());
+        });
+
+        // try {
+        // if (holder == null)
+        // return;
+        // SmartChest chest = new SmartChest(holder);
+        // if (dataManager.getChestType(chest) != ChestType.INPUT)
+        // return;
+        // // Valid move into an input chest — route the item
+        // Bukkit.getScheduler().runTaskLater(plugin, () -> {
+        // routerManager.startRoutingTaskIfNeeded(chest);
+        // }, 1L);
+        // } catch (IllegalArgumentException e) {
+        // // If the holder is not a Chest, we ignore this event
+        // return;
+        // }
     }
 }

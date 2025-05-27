@@ -1,7 +1,7 @@
 package com.autosorter.model;
 
 import org.bukkit.Location;
-import org.bukkit.block.BlockState;
+import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.block.DoubleChest;
 import org.bukkit.inventory.Inventory;
@@ -10,6 +10,7 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.HashMap;
 import java.util.Objects;
+import java.util.Optional;
 
 public class SmartChest {
     private final Chest singleChest;
@@ -28,21 +29,36 @@ public class SmartChest {
         }
     }
 
-    public SmartChest(BlockState state) {
-        if (!(state instanceof InventoryHolder tempHolder)) {
-            throw new IllegalArgumentException("State must be a Chest or DoubleChest");
-        }
-        var holder = tempHolder.getInventory().getHolder();
+    // public SmartChest(Block block) {
+    // if (!(block instanceof InventoryHolder tempHolder)) {
+    // throw new IllegalArgumentException("State must be a Chest or DoubleChest");
+    // }
+    // var holder = tempHolder.getInventory().getHolder();
 
-        if (holder instanceof DoubleChest doubleChest) {
-            this.doubleChest = doubleChest;
-            this.singleChest = null;
-        } else if (holder instanceof Chest chest) {
-            this.doubleChest = null;
-            this.singleChest = chest;
-        } else {
-            throw new IllegalArgumentException("Holder must be a Chest or DoubleChest");
+    // if (holder instanceof DoubleChest doubleChest) {
+    // this.doubleChest = doubleChest;
+    // this.singleChest = null;
+    // } else if (holder instanceof Chest chest) {
+    // this.doubleChest = null;
+    // this.singleChest = chest;
+    // } else {
+    // throw new IllegalArgumentException("Holder must be a Chest or DoubleChest");
+    // }
+    // }
+
+    public static Optional<SmartChest> from(Block block) {
+        if (!(block instanceof InventoryHolder tempHolder)) {
+            return Optional.empty();
         }
+        return from(tempHolder);
+    }
+
+    public static Optional<SmartChest> from(InventoryHolder holder) {
+        var newHolder = holder.getInventory().getHolder();
+        if (holder == null || !(newHolder instanceof DoubleChest || newHolder instanceof Chest)) {
+            return Optional.empty();
+        }
+        return Optional.of(new SmartChest(holder));
     }
 
     public Inventory getInventory() {
@@ -65,28 +81,6 @@ public class SmartChest {
     public boolean isDouble() {
         return this.doubleChest != null;
     }
-
-    // // Saves data into game block of type container (in our case, chest)
-    // public PersistentDataContainer getPersistentDataContainer() {
-    // if (this.singleChest != null) { // is single chest
-    // return this.singleChest.getPersistentDataContainer();
-    // } else if (this.doubleChest != null) { // is double chest
-    // ((Chest) doubleChest.getRightSide()).getBlock().getState().update(true,
-    // false); // DEBUG
-    // return ((Chest)
-    // this.doubleChest.getRightSide()).getPersistentDataContainer();
-    // }
-    // throw new IllegalStateException("No chest available to get
-    // PersistentDataContainer");
-    // }
-
-    // public void update() {
-    // if (this.singleChest != null) {
-    // this.singleChest.update(true);
-    // } else if (this.doubleChest != null) {
-    // ((Chest) this.doubleChest.getRightSide()).update(true);
-    // }
-    // }
 
     @Override
     public boolean equals(Object o) {
@@ -115,34 +109,4 @@ public class SmartChest {
         }
         return null;
     }
-
-    // public String getFromPersistentDataContainerString(NamespacedKey key,
-    // PersistentDataType<String, String> type) {
-    // List<PersistentDataContainer> containers = this.getPersistentDataContainer();
-    // for (PersistentDataContainer container : containers) {
-    // String typeName = container.get(key, type);
-    // if (typeName != null) {
-    // return typeName;
-    // }
-    // }
-    // return null; // Return null if the key is not found in any container
-    // }
-
-    // public void setToPersistentDataContainerString(NamespacedKey key,
-    // PersistentDataType<String, String> type,
-    // String value) {
-    // List<PersistentDataContainer> containers = this.getPersistentDataContainer();
-    // for (PersistentDataContainer container : containers) {
-    // container.set(key, type, value);
-    // }
-    // this.update(); // Ensure the changes are saved to the block state
-    // }
-
-    // For future use, if needed
-    // public int getFromPersistentDataContainerInteger(NamespacedKey key,
-    // PersistentDataType<Integer, Integer> type) {
-    // PersistentDataContainer container = chest.getPersistentDataContainer();
-    // String typeName = container.get(key, type);
-    // return typeName;
-    // }
 }

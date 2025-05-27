@@ -4,7 +4,11 @@ import com.autosorter.AutoSorter;
 import com.autosorter.data.ChestDataManager;
 import com.autosorter.gui.GuiManager;
 import com.autosorter.model.SmartChest;
+import com.autosorter.utils.ChestPersistenceManager;
 
+import java.io.IOException;
+
+import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.command.Command;
@@ -40,20 +44,39 @@ public class SorterCommand implements CommandExecutor {
                 player.sendMessage(chestInfo);
             });
             return true;
+        } else if (args.length == 1 && args[0].equalsIgnoreCase("backup")) {
+            try {
+                plugin.backupChests();
+                sender.sendMessage(ChatColor.GREEN + "AutoSorter backup saved to chest_data.yml.");
+            } catch (IOException e) {
+                sender.sendMessage(ChatColor.RED + "Backup failed: " + e.getMessage());
+                e.printStackTrace();
+            }
+            return true;
         }
         Block targetBlock = player.getTargetBlockExact(5); // 5 blocks range
         if (targetBlock == null) {
             player.sendMessage("§cYou must be looking directly at a chest to configure it.");
             return true;
         }
-        try {
-            // Check if the target block is a chest
-            SmartChest chest = new SmartChest(targetBlock.getState());
-            guiManager.openConfigGui(player, chest);
-            return true;
-        } catch (IllegalArgumentException e) {
+
+        var chest = SmartChest.from(targetBlock);
+        if (chest.isEmpty()) {
             player.sendMessage("§cYou must be looking directly at a chest to configure it.");
             return true;
         }
+        guiManager.openConfigGui(player, chest.get());
+        return true;
+
+        // try {
+        // // Check if the target block is a chest
+        // SmartChest chest = new SmartChest(targetBlock);
+        // guiManager.openConfigGui(player, chest);
+        // return true;
+        // } catch (IllegalArgumentException e) {
+        // player.sendMessage("§cYou must be looking directly at a chest to configure
+        // it.");
+        // return true;
+        // }
     }
 }

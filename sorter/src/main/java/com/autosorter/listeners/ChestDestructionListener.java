@@ -36,7 +36,11 @@ public class ChestDestructionListener implements Listener {
         if (block.getType() != Material.CHEST)
             return;
 
-        SmartChest chest = new SmartChest(block.getState());
+        // SmartChest chest = new SmartChest(block);
+        var optinalChest = SmartChest.from(block);
+        if (optinalChest.isEmpty())
+            return; // Not a valid chest
+        var chest = optinalChest.get();
 
         if (!chestDataManager.isSorterChest(chest))
             return; // Not managed by the plugin
@@ -99,7 +103,12 @@ public class ChestDestructionListener implements Listener {
             if (block.getType() != Material.CHEST)
                 continue;
 
-            SmartChest chest = new SmartChest(block.getState());
+            // SmartChest chest = new SmartChest(block);
+            var optinalChest = SmartChest.from(block);
+            if (optinalChest.isEmpty())
+                continue; // Not a valid chest
+
+            var chest = optinalChest.get();
             Location normalized = chest.getLocation();
 
             if (alreadyProcessed.contains(normalized))

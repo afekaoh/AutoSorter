@@ -50,8 +50,6 @@ public class ChestPersistenceManager {
                 .map(c -> serializeLocation(c.getLocation()))
                 .toList());
 
-        // config.set("receiver-chests", receiverChests.stream().map(c ->
-        // serializeLocation(c.getLocation())).toList());
         config.set("overflow-chests", overflowChests.stream().map(c -> serializeLocation(c.getLocation())).toList());
 
         Map<String, List<String>> receivingSection = new HashMap<>();
@@ -90,21 +88,16 @@ public class ChestPersistenceManager {
                 config.getStringList("input-chests")
                         .stream()
                         .map(s -> deserializeLocation(s))
-                        .map(l -> new SmartChest(l.getBlock().getState()))
+                        .map(l -> SmartChest.from(l.getBlock()).orElseGet(null))
+                        .filter(c -> c != null)
                         .toList());
-
-        // var receiverChests = new HashSet<>(
-        // config.getStringList("receiver-chests")
-        // .stream()
-        // .map(s -> deserializeLocation(s))
-        // .map(l -> new SmartChest(l.getBlock().getState()))
-        // .toList());
 
         var overflowChests = new HashSet<>(
                 config.getStringList("overflow-chests")
                         .stream()
                         .map(s -> deserializeLocation(s))
-                        .map(l -> new SmartChest(l.getBlock().getState()))
+                        .map(l -> SmartChest.from(l.getBlock()).orElseGet(null))
+                        .filter(c -> c != null)
                         .toList());
 
         ConfigurationSection receivers = config.getConfigurationSection("receiving-map");
@@ -112,7 +105,12 @@ public class ChestPersistenceManager {
         if (receivers != null) {
             for (String locationKey : receivers.getKeys(false)) {
                 Location loc = deserializeLocation(locationKey);
-                SmartChest chest = new SmartChest(loc.getBlock().getState());
+                // SmartChest chest = new SmartChest(loc.getBlock());
+                var optionalChest = SmartChest.from(loc.getBlock());
+                if (optionalChest.isEmpty()) {
+                    continue; // Skip if not a valid SmartChest
+                }
+                var chest = optionalChest.get(); // Get the SmartChest instance
                 Set<ItemStack> filters = new HashSet<>();
                 receivers.getStringList(locationKey)
                         .stream()

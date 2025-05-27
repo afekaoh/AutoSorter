@@ -12,6 +12,7 @@ import com.autosorter.utils.ChestPersistenceManager.SetTransfer;
 
 import java.io.IOException;
 
+import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class AutoSorter extends JavaPlugin {
@@ -28,6 +29,7 @@ public class AutoSorter extends JavaPlugin {
         if (!getDataFolder().exists()) {
             getDataFolder().mkdirs();
         }
+        int intervalMinutes = getConfig().getInt("backup-interval-minutes", 10);
         this.persistenceManager = new ChestPersistenceManager(this);
         // Load existing chest data
         SetTransfer chestSets = null;
@@ -68,16 +70,23 @@ public class AutoSorter extends JavaPlugin {
         getServer()
                 .getPluginManager()
                 .registerEvents(new RoutingListener(this, chestDataManager, routerManager), this);
+
+        // Schedule periodic backup task
+        var minuteInTicks = 60L * 20L; // 1 minute in ticks
+        var runTime = intervalMinutes * minuteInTicks;
+        getServer().getScheduler().runTaskTimer(this, () -> {
+            try {
+                backupChests();
+            } catch (IOException e) {
+                getLogger().severe("Failed to save chest data: " + e.getMessage());
+            }
+        }, runTime, runTime);
     }
 
     @Override
     public void onDisable() {
         try {
-            // Save any data if needed
-            var inputChests = this.chestDataManager.getInputChests();
-            var receiverChests = this.chestDataManager.getReceiverChestsFilterMap();
-            var overflowChests = this.chestDataManager.getOverflowChests();
-            persistenceManager.saveChestsAndRouting(inputChests, receiverChests, overflowChests);
+            backupChests();
         } catch (IOException e) {
             getLogger().severe("Failed to save chest data: " + e.getMessage());
         }
@@ -92,4 +101,14 @@ public class AutoSorter extends JavaPlugin {
     public GuiManager getGuiManager() {
         return guiManager;
     }
+
+    public void backupChests() throws IOException {
+        // Save any data if needed
+        var inputChests = this.chestDataManager.getInputChests();
+        var receiverChests = this.chestDataManager.getReceiverChestsFilterMap();
+        var overflowChests = this.chestDataManager.getOverflowChests();
+        this.persistenceManager.saveChestsAndRouting(inputChests, receiverChests, overflowChests);
+        getLogger().info("AutoSorter backup saved to chest_data.yml.");
+    }
+
 }
