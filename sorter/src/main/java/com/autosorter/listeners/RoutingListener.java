@@ -45,19 +45,6 @@ public class RoutingListener implements Listener {
         Bukkit.getScheduler().runTask(plugin, () -> {
             routerManager.startRoutingTaskIfNeeded(chest.get());
         });
-        // try {
-        // SmartChest chest = new SmartChest(topInventory.getHolder());
-
-        // if (dataManager.getChestType(chest) != ChestType.INPUT)
-        // return;
-
-        // Bukkit.getScheduler().runTaskLater(plugin, () -> {
-        // routerManager.startRoutingTaskIfNeeded(chest);
-        // }, 1L);
-        // } catch (IllegalArgumentException e) {
-        // // If top inventory is not a chest
-        // return;
-        // }
     }
 
     @EventHandler
@@ -77,20 +64,6 @@ public class RoutingListener implements Listener {
         Bukkit.getScheduler().runTask(plugin, () -> {
             routerManager.startRoutingTaskIfNeeded(chest.get());
         });
-
-        // try {
-        // if (dragged == null)
-        // return;
-        // SmartChest chest = new SmartChest(dragged.getHolder());
-        // if (dataManager.getChestType(chest) != ChestType.INPUT)
-        // return;
-        // Bukkit.getScheduler().runTaskLater(plugin, () -> {
-        // routerManager.startRoutingTaskIfNeeded(chest);
-        // }, 1L);
-        // } catch (IllegalArgumentException e) {
-        // // If the holder is not a Chest, we ignore this event
-        // return;
-        // }
     }
 
     @EventHandler
@@ -108,20 +81,5 @@ public class RoutingListener implements Listener {
         Bukkit.getScheduler().runTask(plugin, () -> {
             routerManager.startRoutingTaskIfNeeded(chest.get());
         });
-
-        // try {
-        // if (holder == null)
-        // return;
-        // SmartChest chest = new SmartChest(holder);
-        // if (dataManager.getChestType(chest) != ChestType.INPUT)
-        // return;
-        // // Valid move into an input chest — route the item
-        // Bukkit.getScheduler().runTaskLater(plugin, () -> {
-        // routerManager.startRoutingTaskIfNeeded(chest);
-        // }, 1L);
-        // } catch (IllegalArgumentException e) {
-        // // If the holder is not a Chest, we ignore this event
-        // return;
-        // }
     }
 }

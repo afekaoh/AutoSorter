@@ -12,7 +12,6 @@ import com.autosorter.utils.ChestPersistenceManager.SetTransfer;
 
 import java.io.IOException;
 
-import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class AutoSorter extends JavaPlugin {
@@ -70,17 +69,6 @@ public class AutoSorter extends JavaPlugin {
         getServer()
                 .getPluginManager()
                 .registerEvents(new RoutingListener(this, chestDataManager, routerManager), this);
-
-        // Schedule periodic backup task
-        // var minuteInTicks = 60L * 20L; // 1 minute in ticks
-        // var runTime = intervalMinutes * minuteInTicks;
-        // getServer().getScheduler().runTaskTimer(this, () -> {
-        // try {
-        // backupChests();
-        // } catch (IOException e) {
-        // getLogger().severe("Failed to save chest data: " + e.getMessage());
-        // }
-        // }, runTime, runTime);
     }
 
     @Override
