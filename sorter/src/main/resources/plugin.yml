@@ -7,4 +7,4 @@ description: Automatically sorts items from input chests.
 commands:
   sortchest:
     description: Opens the configuration GUI for the chest you are looking at.
-    usage: /sortchest
+    usage: /sortchest [list|wand]

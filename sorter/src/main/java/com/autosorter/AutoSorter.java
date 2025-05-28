@@ -6,6 +6,7 @@ import com.autosorter.gui.GuiManager;
 import com.autosorter.listeners.ChestDestructionListener;
 import com.autosorter.listeners.GuiListener;
 import com.autosorter.listeners.RoutingListener;
+import com.autosorter.listeners.WandListener;
 import com.autosorter.model.RouterManager;
 import com.autosorter.utils.ChestPersistenceManager;
 import com.autosorter.utils.ChestPersistenceManager.SetTransfer;
@@ -36,6 +37,7 @@ public class AutoSorter extends JavaPlugin {
             chestSets = persistenceManager.loadChestsAndRouting();
         } catch (IOException e) {
             getLogger().severe("Failed to load chest data: " + e.getMessage());
+            return;
         }
         // Initialize Managers
         this.chestDataManager = new ChestDataManager(
@@ -69,6 +71,9 @@ public class AutoSorter extends JavaPlugin {
         getServer()
                 .getPluginManager()
                 .registerEvents(new RoutingListener(this, chestDataManager, routerManager), this);
+
+        // Register Wand Listener
+        getServer().getPluginManager().registerEvents(new WandListener(this, this.guiManager), this);
     }
 
     @Override

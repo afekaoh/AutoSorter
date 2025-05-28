@@ -6,6 +6,7 @@ import com.autosorter.model.ChestType;
 import com.autosorter.model.SmartChest;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -66,37 +67,94 @@ public class GuiManager {
         ChestType currentType = dataManager.getChestType(chest);
 
         // --- Create Buttons ---
-        ItemStack inputButton = createGuiItem(Material.HOPPER, "§aInput Chest",
-                Arrays.asList("§7Click to set this chest", "§7as an §aInput Chest§7.",
-                        (currentType == ChestType.INPUT ? "§e(Currently Selected)" : "")));
 
-        ItemStack receiverButton = createGuiItem(Material.CHEST, "§bReceiver Chest",
-                Arrays.asList("§7Click to set this chest", "§7as a §bReceiver Chest§7.",
-                        "§7(Allows setting item filters).",
-                        (currentType == ChestType.RECEIVER ? "§e(Currently Selected)" : "")));
+        // Input Chest Button
+        Component inputChestName = Component.text("Input Chest").colorIfAbsent(NamedTextColor.GREEN);
+        ItemStack inputButton = createGuiItem(Material.HOPPER,
+                inputChestName,
+                List.of(
+                        Component.text("Click to set this chest").colorIfAbsent(NamedTextColor.GRAY),
+                        Component.text("as an ")
+                                .append(inputChestName)
+                                .append(Component.text("."))
+                                .colorIfAbsent(NamedTextColor.GRAY),
+                        currentType == ChestType.INPUT
+                                ? Component.text("(Currently Selected)").colorIfAbsent(NamedTextColor.YELLOW)
+                                : Component.empty()));
+        // Receiver Chest Button
+        Component receiverChestName = Component.text("Receiver Chest").colorIfAbsent(NamedTextColor.AQUA);
+        ItemStack receiverButton = createGuiItem(Material.CHEST,
+                receiverChestName,
+                Arrays.asList(
+                        Component.text("Click to set this chest").colorIfAbsent(NamedTextColor.GRAY),
+                        Component.text("as a ")
+                                .append(receiverChestName)
+                                .append(Component.text("."))
+                                .colorIfAbsent(NamedTextColor.GRAY),
+                        Component.text("Allows setting item filters").colorIfAbsent(NamedTextColor.GRAY),
+                        (currentType == ChestType.RECEIVER
+                                ? Component.text("(Currently Selected)").colorIfAbsent(NamedTextColor.YELLOW)
+                                : Component.empty())));
+        // Overflow Chest Button
 
-        ItemStack overflowButton = createGuiItem(Material.BARRIER, "§cOverflow Chest",
-                Arrays.asList("§7Click to set this chest", "§7as an §cOverflow Chest§7.",
-                        "§7(Catches un-sortable items).",
-                        (currentType == ChestType.OVERFLOW ? "§e(Currently Selected)" : "")));
+        Component overflowChestName = Component.text("Overflow Chest").colorIfAbsent(NamedTextColor.RED);
 
-        ItemStack noneButton = createGuiItem(Material.GLASS_PANE, "§8None / Remove",
-                Arrays.asList("§7Click to remove this chest", "§7from the sorting system.",
-                        (currentType == ChestType.NONE ? "§e(Currently Selected)" : "")));
+        ItemStack overflowButton = createGuiItem(Material.BARRIER,
+                overflowChestName,
+                Arrays.asList(
+                        Component.text("Click to set this chest").colorIfAbsent(NamedTextColor.GRAY),
+                        Component.text("as an ")
+                                .append(overflowChestName)
+                                .append(Component.text("."))
+                                .colorIfAbsent(NamedTextColor.GRAY),
+                        Component.text("Catches un-sortable items").colorIfAbsent(NamedTextColor.GRAY),
+                        (currentType == ChestType.OVERFLOW
+                                ? Component.text("(Currently Selected)").colorIfAbsent(NamedTextColor.YELLOW)
+                                : Component.empty())));
 
-        ItemStack saveButton = createGuiItem(Material.WRITABLE_BOOK, "§6Save & Close",
-                List.of("§7Saves the current filters", "§7and closes this window."));
+        // None / Remove Chest Buttons
+        boolean isNone = currentType == ChestType.NONE;
+        Component removeButtonName = Component.text("Remove").colorIfAbsent(NamedTextColor.DARK_GRAY);
 
-        ItemStack filler = createGuiItem(Material.BLACK_STAINED_GLASS_PANE, " ", new ArrayList<>());
+        ItemStack removeButton = createGuiItem(Material.GLASS_PANE,
+                removeButtonName,
+                Arrays.asList(
+                        Component.text("Click to remove this chest").colorIfAbsent(NamedTextColor.GRAY),
+                        Component.text("from the sorting system.").colorIfAbsent(NamedTextColor.GRAY)));
+
+        Component noneButtonName = Component.text("None").colorIfAbsent(NamedTextColor.DARK_GRAY);
+
+        ItemStack noneButton = createGuiItem(Material.GLASS_PANE,
+                noneButtonName,
+                Arrays.asList(
+                        Component.text("This chest is not part").colorIfAbsent(NamedTextColor.GRAY),
+                        Component.text("of the sorting system.").colorIfAbsent(NamedTextColor.GRAY),
+                        Component.text("(Currently Selected)").colorIfAbsent(NamedTextColor.YELLOW)));
+
+        // Save & Close Button
+        Component saveButtonName = Component.text("Save & Close").colorIfAbsent(NamedTextColor.GOLD);
+        ItemStack saveButton = createGuiItem(Material.WRITABLE_BOOK,
+                saveButtonName,
+                Arrays.asList(
+                        Component.text("Saves the current type and filters").colorIfAbsent(NamedTextColor.GRAY),
+                        Component.text("and closes this window.").colorIfAbsent(NamedTextColor.GRAY)));
+
+        ItemStack filler = createGuiItem(Material.BLACK_STAINED_GLASS_PANE, Component.text(" "), new ArrayList<>());
 
         // --- Place Buttons & Filler ---
         for (int i = 0; i < GUI_SIZE; i++) {
             gui.setItem(i, filler); // Fill all with glass first
         }
+
         gui.setItem(INPUT_BUTTON_SLOT, inputButton);
         gui.setItem(RECEIVER_BUTTON_SLOT, receiverButton);
         gui.setItem(OVERFLOW_BUTTON_SLOT, overflowButton);
-        gui.setItem(NONE_BUTTON_SLOT, noneButton);
+
+        if (isNone)
+            gui.setItem(NONE_BUTTON_SLOT, noneButton);
+        else
+            gui.setItem(NONE_BUTTON_SLOT, removeButton);
+
         gui.setItem(SAVE_BUTTON_SLOT, saveButton);
 
         List<ItemStack> filters = dataManager.getFilters(chest);
@@ -116,12 +174,14 @@ public class GuiManager {
     }
 
     // Helper method to create GUI items
-    public static ItemStack createGuiItem(Material material, String name, List<String> lore) {
+    public static ItemStack createGuiItem(Material material, Component name, List<Component> lore) {
         ItemStack item = new ItemStack(material, 1);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(name);
-            meta.setLore(lore);
+            // Set the display name and lore
+            meta.displayName(name);
+            lore = lore.stream().filter(Component.IS_NOT_EMPTY).toList(); // Filter out empty components
+            meta.lore(lore);
             item.setItemMeta(meta);
         }
         return item;
@@ -132,8 +192,10 @@ public class GuiManager {
         ItemStack item = new ItemStack(material, amount);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(name);
-            meta.setLore(lore);
+            // meta.setDisplayName(name);
+            // meta.setLore(lore);
+            meta.displayName(Component.text(name));
+            meta.lore(lore.stream().map(Component::text).toList());
             item.setItemMeta(meta);
         }
         return item;
