@@ -20,29 +20,29 @@ import com.autosorter.data.ChestDataManager;
 import com.autosorter.model.ChestType;
 import com.autosorter.model.SmartChest;
 
-public class ChestDestructionListener implements Listener {
+public class ChestDestructionListener implements Listener{
 
     private final ChestDataManager chestDataManager;
 
-    public ChestDestructionListener(ChestDataManager chestDataManager) {
+    public ChestDestructionListener(ChestDataManager chestDataManager){
         this.chestDataManager = chestDataManager;
     }
 
     @EventHandler
-    public void onChestBreak(BlockBreakEvent event) {
+    public void onChestBreak(BlockBreakEvent event){
 
         Block block = event.getBlock();
 
-        if (block.getType() != Material.CHEST)
+        if(block.getType() != Material.CHEST)
             return;
 
         // SmartChest chest = new SmartChest(block);
-        var optinalChest = SmartChest.from(block);
-        if (optinalChest.isEmpty())
+        var optionalChest = SmartChest.from(block);
+        if(optionalChest.isEmpty())
             return; // Not a valid chest
-        var chest = optinalChest.get();
+        var chest = optionalChest.get();
 
-        if (!chestDataManager.isSorterChest(chest))
+        if(chestDataManager.isNotSorterChest(chest))
             return; // Not managed by the plugin
 
         // Cancel default item drop
@@ -50,8 +50,8 @@ public class ChestDestructionListener implements Listener {
         event.setCancelled(true);
 
         // Drop filter items if RECEIVER
-        if (chestDataManager.getChestType(chest) == ChestType.RECEIVER) {
-            for (ItemStack item : chestDataManager.getFilters(chest)) {
+        if(chestDataManager.getChestType(chest) == ChestType.RECEIVER){
+            for(ItemStack item : chestDataManager.getFilters(chest)){
                 block.getWorld().dropItemNaturally(block.getLocation(), item.clone());
             }
         }
@@ -60,14 +60,14 @@ public class ChestDestructionListener implements Listener {
         chestDataManager.removeChest(chest);
 
         var contents = chest.getInventory().getContents();
-        for (ItemStack item : contents) {
-            if (item != null && !item.getType().isAir()) {
+        for(ItemStack item : contents){
+            if(item != null && !item.getType().isAir()){
                 block.getWorld().dropItemNaturally(block.getLocation(), item);
             }
         }
 
         // If double chest, manually break the other half
-        if (chest.isDouble()) {
+        if(chest.isDouble()){
 
             Chest leftChest = chest.getLeftHalf();
             Chest rightChest = chest.getRightHalf();
@@ -76,7 +76,8 @@ public class ChestDestructionListener implements Listener {
             leftChest.getWorld().dropItemNaturally(leftChest.getLocation(), new ItemStack(Material.CHEST));
             rightChest.getBlock().setType(Material.AIR);
             rightChest.getWorld().dropItemNaturally(rightChest.getLocation(), new ItemStack(Material.CHEST));
-        } else {
+        }
+        else {
             block.setType(Material.AIR);
             block.getWorld().dropItemNaturally(block.getLocation(), new ItemStack(Material.CHEST));
         }
@@ -84,37 +85,37 @@ public class ChestDestructionListener implements Listener {
     }
 
     @EventHandler
-    public void onEntityExplode(EntityExplodeEvent event) {
+    public void onEntityExplode(EntityExplodeEvent event){
         handleChestExplosion(event.blockList());
     }
 
     @EventHandler
-    public void onBlockExplode(BlockExplodeEvent event) {
+    public void onBlockExplode(BlockExplodeEvent event){
         handleChestExplosion(event.blockList());
     }
 
-    private void handleChestExplosion(List<Block> blocks) {
+    private void handleChestExplosion(List<Block> blocks){
         Set<Location> alreadyProcessed = new HashSet<>();
 
         Iterator<Block> iterator = blocks.iterator();
-        while (iterator.hasNext()) {
+        while(iterator.hasNext()){
             Block block = iterator.next();
 
-            if (block.getType() != Material.CHEST)
+            if(block.getType() != Material.CHEST)
                 continue;
 
             // SmartChest chest = new SmartChest(block);
             var optinalChest = SmartChest.from(block);
-            if (optinalChest.isEmpty())
+            if(optinalChest.isEmpty())
                 continue; // Not a valid chest
 
             var chest = optinalChest.get();
             Location normalized = chest.getLocation();
 
-            if (alreadyProcessed.contains(normalized))
+            if(alreadyProcessed.contains(normalized))
                 continue;
 
-            if (!chestDataManager.isSorterChest(chest))
+            if(chestDataManager.isNotSorterChest(chest))
                 continue;
 
             alreadyProcessed.add(normalized);
@@ -122,26 +123,26 @@ public class ChestDestructionListener implements Listener {
             // Remove both halves from the explosion to suppress default drops
             iterator.remove(); // remove current block
 
-            if (chest.isDouble()) {
+            if(chest.isDouble()){
                 Chest left = chest.getLeftHalf();
                 Chest right = chest.getRightHalf();
 
-                if (!left.getLocation().equals(block.getLocation()))
+                if(!left.getLocation().equals(block.getLocation()))
                     blocks.remove(left.getBlock());
-                if (!right.getLocation().equals(block.getLocation()))
+                if(!right.getLocation().equals(block.getLocation()))
                     blocks.remove(right.getBlock());
             }
 
             // Drop filter items
-            if (chestDataManager.getChestType(chest) == ChestType.RECEIVER) {
-                for (ItemStack item : chestDataManager.getFilters(chest)) {
+            if(chestDataManager.getChestType(chest) == ChestType.RECEIVER){
+                for(ItemStack item : chestDataManager.getFilters(chest)){
                     block.getWorld().dropItemNaturally(block.getLocation(), item.clone());
                 }
             }
 
             // Drop inventory contents
-            for (ItemStack item : chest.getInventory().getContents()) {
-                if (item != null && !item.getType().isAir()) {
+            for(ItemStack item : chest.getInventory().getContents()){
+                if(item != null && !item.getType().isAir()){
                     block.getWorld().dropItemNaturally(block.getLocation(), item);
                 }
             }
@@ -150,7 +151,7 @@ public class ChestDestructionListener implements Listener {
             chestDataManager.removeChest(chest);
 
             // Break and drop both sides
-            if (chest.isDouble()) {
+            if(chest.isDouble()){
                 Chest left = chest.getLeftHalf();
                 Chest right = chest.getRightHalf();
 
@@ -158,7 +159,8 @@ public class ChestDestructionListener implements Listener {
                 left.getWorld().dropItemNaturally(left.getLocation(), new ItemStack(Material.CHEST));
                 right.getBlock().setType(Material.AIR);
                 right.getWorld().dropItemNaturally(right.getLocation(), new ItemStack(Material.CHEST));
-            } else {
+            }
+            else {
                 block.setType(Material.AIR);
                 block.getWorld().dropItemNaturally(block.getLocation(), new ItemStack(Material.CHEST));
             }

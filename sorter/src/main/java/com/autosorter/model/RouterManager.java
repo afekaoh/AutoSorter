@@ -10,7 +10,7 @@ import com.autosorter.data.ChestDataManager;
 
 import java.util.*;
 
-public class RouterManager {
+public class RouterManager{
 
     private final AutoSorter plugin;
     private final ChestDataManager dataManager;
@@ -18,41 +18,42 @@ public class RouterManager {
     // Prevent routing duplicates
     private final Set<Location> activeRoutingTasks = new HashSet<>();
 
-    public RouterManager(AutoSorter plugin, ChestDataManager dataManager) {
+    public RouterManager(AutoSorter plugin, ChestDataManager dataManager){
         this.plugin = plugin;
         this.dataManager = dataManager;
     }
 
-    public void startRoutingTaskIfNeeded(SmartChest chest) {
+    public void startRoutingTaskIfNeeded(SmartChest chest){
         Location loc = chest.getLocation();
-        if (activeRoutingTasks.contains(loc)) {
+        if(activeRoutingTasks.contains(loc)){
             return;
         }
 
         activeRoutingTasks.add(loc);
-        new BukkitRunnable() {
+        new BukkitRunnable(){
             @Override
-            public void run() {
+            public void run(){
                 Inventory inv = chest.getInventory();
                 boolean routedSomething = false;
 
-                for (ItemStack item : inv.getContents()) {
-                    if (item == null || item.getType().isAir())
+                for(ItemStack item : inv.getContents()){
+                    if(item == null || item.getType().isAir())
                         continue;
 
                     // Try to route 1 item at a time
                     ItemStack single = item.clone();
                     single.setAmount(1);
-                    boolean routed = tryRouteItemToReciver(inv, single);
-                    if (routed) {
+                    boolean routed = tryRouteItemToReceiver(single);
+                    if(routed){
                         item.setAmount(item.getAmount() - 1);
                         routedSomething = true;
                         break; // only route one item per tick to avoid spikes
-                    } else {
+                    }
+                    else {
                         // If we can't route, we should move it to overflow or mark it for
                         // manualhandling
-                        boolean overflowed = tryRouteItemToOverFlow(inv, single);
-                        if (overflowed) {
+                        boolean overflowed = tryRouteItemToOverFlow(single);
+                        if(overflowed){
                             item.setAmount(item.getAmount() - 1);
                             routedSomething = true;
                             break; // only route one item per tick to avoid spikes
@@ -61,7 +62,7 @@ public class RouterManager {
                 }
 
                 // Stop if inventory is empty or nothing routed
-                if (inv.isEmpty() || !routedSomething) {
+                if(inv.isEmpty() || !routedSomething){
                     activeRoutingTasks.remove(loc);
                     cancel();
                 }
@@ -69,26 +70,23 @@ public class RouterManager {
         }.runTaskTimer(plugin, 0L, 2L); // adjust interval if needed
     }
 
-    public boolean tryRouteItemToReciver(Inventory sourceInv, ItemStack item) {
+    public boolean tryRouteItemToReceiver(ItemStack item){
 
-        return tryRouteItemToTarget(sourceInv, item, dataManager.getBestRoutingTargetReciver(item));
+        return tryRouteItemToTarget(item, dataManager.getBestRoutingTargetReciver(item));
     }
 
-    public boolean tryRouteItemToOverFlow(Inventory sourceInv, ItemStack item) {
-        return tryRouteItemToTarget(sourceInv, item, dataManager.getBestRoutingTargetOverFlow(item));
+    public boolean tryRouteItemToOverFlow(ItemStack item){
+        return tryRouteItemToTarget(item, dataManager.getBestRoutingTargetOverFlow(item));
     }
 
-    public boolean tryRouteItemToTarget(Inventory sourceInv, ItemStack item, SmartChest target) {
+    public boolean tryRouteItemToTarget(ItemStack item, SmartChest target){
 
-        if (target == null) {
+        if(target == null){
             return false;
         }
 
         Inventory targetInv = target.getInventory();
         HashMap<Integer, ItemStack> leftover = targetInv.addItem(item.clone());
-        if (leftover.isEmpty()) {
-            return true; // item successfully routed
-        }
-        return false; // target couldn't accept it
+        return leftover.isEmpty(); // item successfully routed
     }
 }

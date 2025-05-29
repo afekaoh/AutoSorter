@@ -1,6 +1,5 @@
 package com.autosorter.gui;
 
-import com.autosorter.AutoSorter;
 import com.autosorter.data.ChestDataManager;
 import com.autosorter.model.ChestType;
 import com.autosorter.model.SmartChest;
@@ -21,10 +20,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.IntStream;
 
-public class GuiManager {
+public class GuiManager{
 
-    private final AutoSorter plugin;
     private final ChestDataManager dataManager;
     public static final int GUI_SIZE = 54; // 6 rows
     public static final int FILTER_START_SLOT = 9; // Second row
@@ -39,12 +38,11 @@ public class GuiManager {
 
     private static final Set<UUID> ignoreNextClose = new HashSet<>();
 
-    public GuiManager(AutoSorter plugin, ChestDataManager dataManager) {
-        this.plugin = plugin;
+    public GuiManager(ChestDataManager dataManager){
         this.dataManager = dataManager;
     }
 
-    public void openConfigGui(Player player, SmartChest chest) {
+    public void openConfigGui(Player player, SmartChest chest){
         ConfigGuiHolder holder = new ConfigGuiHolder(chest);
         Component title = Component.text("Sorter Chest Config");
         Inventory gui = Bukkit.createInventory(holder, GUI_SIZE, title);
@@ -61,7 +59,7 @@ public class GuiManager {
 
     }
 
-    private void populateGui(Inventory gui, SmartChest chest) {
+    private void populateGui(Inventory gui, SmartChest chest){
         gui.clear(); // Start fresh
 
         ChestType currentType = dataManager.getChestType(chest);
@@ -70,53 +68,57 @@ public class GuiManager {
 
         // Input Chest Button
         Component inputChestName = Component.text("Input Chest").colorIfAbsent(NamedTextColor.GREEN);
-        ItemStack inputButton = createGuiItem(Material.HOPPER,
+        ItemStack inputButton = createGuiItem(
+                Material.HOPPER,
                 inputChestName,
                 List.of(
                         Component.text("Click to set this chest").colorIfAbsent(NamedTextColor.GRAY),
                         Component.text("as an ")
-                                .append(inputChestName)
-                                .append(Component.text("."))
-                                .colorIfAbsent(NamedTextColor.GRAY),
+                                 .append(inputChestName)
+                                 .append(Component.text("."))
+                                 .colorIfAbsent(NamedTextColor.GRAY),
                         currentType == ChestType.INPUT
-                                ? Component.text("(Currently Selected)").colorIfAbsent(NamedTextColor.YELLOW)
-                                : Component.empty()));
+                        ? Component.text("(Currently Selected)").colorIfAbsent(NamedTextColor.YELLOW)
+                        : Component.empty()));
         // Receiver Chest Button
         Component receiverChestName = Component.text("Receiver Chest").colorIfAbsent(NamedTextColor.AQUA);
-        ItemStack receiverButton = createGuiItem(Material.CHEST,
+        ItemStack receiverButton = createGuiItem(
+                Material.CHEST,
                 receiverChestName,
                 Arrays.asList(
                         Component.text("Click to set this chest").colorIfAbsent(NamedTextColor.GRAY),
                         Component.text("as a ")
-                                .append(receiverChestName)
-                                .append(Component.text("."))
-                                .colorIfAbsent(NamedTextColor.GRAY),
+                                 .append(receiverChestName)
+                                 .append(Component.text("."))
+                                 .colorIfAbsent(NamedTextColor.GRAY),
                         Component.text("Allows setting item filters").colorIfAbsent(NamedTextColor.GRAY),
                         (currentType == ChestType.RECEIVER
-                                ? Component.text("(Currently Selected)").colorIfAbsent(NamedTextColor.YELLOW)
-                                : Component.empty())));
+                         ? Component.text("(Currently Selected)").colorIfAbsent(NamedTextColor.YELLOW)
+                         : Component.empty())));
         // Overflow Chest Button
 
         Component overflowChestName = Component.text("Overflow Chest").colorIfAbsent(NamedTextColor.RED);
 
-        ItemStack overflowButton = createGuiItem(Material.BARRIER,
+        ItemStack overflowButton = createGuiItem(
+                Material.BARRIER,
                 overflowChestName,
                 Arrays.asList(
                         Component.text("Click to set this chest").colorIfAbsent(NamedTextColor.GRAY),
                         Component.text("as an ")
-                                .append(overflowChestName)
-                                .append(Component.text("."))
-                                .colorIfAbsent(NamedTextColor.GRAY),
+                                 .append(overflowChestName)
+                                 .append(Component.text("."))
+                                 .colorIfAbsent(NamedTextColor.GRAY),
                         Component.text("Catches un-sortable items").colorIfAbsent(NamedTextColor.GRAY),
                         (currentType == ChestType.OVERFLOW
-                                ? Component.text("(Currently Selected)").colorIfAbsent(NamedTextColor.YELLOW)
-                                : Component.empty())));
+                         ? Component.text("(Currently Selected)").colorIfAbsent(NamedTextColor.YELLOW)
+                         : Component.empty())));
 
         // None / Remove Chest Buttons
         boolean isNone = currentType == ChestType.NONE;
         Component removeButtonName = Component.text("Remove").colorIfAbsent(NamedTextColor.DARK_GRAY);
 
-        ItemStack removeButton = createGuiItem(Material.GLASS_PANE,
+        ItemStack removeButton = createGuiItem(
+                Material.GLASS_PANE,
                 removeButtonName,
                 Arrays.asList(
                         Component.text("Click to remove this chest").colorIfAbsent(NamedTextColor.GRAY),
@@ -124,7 +126,8 @@ public class GuiManager {
 
         Component noneButtonName = Component.text("None").colorIfAbsent(NamedTextColor.DARK_GRAY);
 
-        ItemStack noneButton = createGuiItem(Material.GLASS_PANE,
+        ItemStack noneButton = createGuiItem(
+                Material.GLASS_PANE,
                 noneButtonName,
                 Arrays.asList(
                         Component.text("This chest is not part").colorIfAbsent(NamedTextColor.GRAY),
@@ -133,7 +136,8 @@ public class GuiManager {
 
         // Save & Close Button
         Component saveButtonName = Component.text("Save & Close").colorIfAbsent(NamedTextColor.GOLD);
-        ItemStack saveButton = createGuiItem(Material.WRITABLE_BOOK,
+        ItemStack saveButton = createGuiItem(
+                Material.WRITABLE_BOOK,
                 saveButtonName,
                 Arrays.asList(
                         Component.text("Saves the current type and filters").colorIfAbsent(NamedTextColor.GRAY),
@@ -142,15 +146,14 @@ public class GuiManager {
         ItemStack filler = createGuiItem(Material.BLACK_STAINED_GLASS_PANE, Component.text(" "), new ArrayList<>());
 
         // --- Place Buttons & Filler ---
-        for (int i = 0; i < GUI_SIZE; i++) {
-            gui.setItem(i, filler); // Fill all with glass first
-        }
+        // Fill all with glass first
+        IntStream.range(0, GUI_SIZE).forEach(i -> gui.setItem(i, filler));
 
         gui.setItem(INPUT_BUTTON_SLOT, inputButton);
         gui.setItem(RECEIVER_BUTTON_SLOT, receiverButton);
         gui.setItem(OVERFLOW_BUTTON_SLOT, overflowButton);
 
-        if (isNone)
+        if(isNone)
             gui.setItem(NONE_BUTTON_SLOT, noneButton);
         else
             gui.setItem(NONE_BUTTON_SLOT, removeButton);
@@ -160,13 +163,14 @@ public class GuiManager {
         List<ItemStack> filters = dataManager.getFilters(chest);
 
         // --- Place Filters (if Receiver) ---
-        if (currentType == ChestType.RECEIVER) {
+        if(currentType == ChestType.RECEIVER){
             // Only place filters — don't overwrite with glass panes if none exist
-            for (int i = 0; i <= GuiManager.FILTER_END_SLOT - GuiManager.FILTER_START_SLOT; i++) {
+            for(int i = 0; i <= GuiManager.FILTER_END_SLOT - GuiManager.FILTER_START_SLOT; i++){
                 int slot = GuiManager.FILTER_START_SLOT + i;
-                if (i < filters.size()) {
+                if(i < filters.size()){
                     gui.setItem(slot, filters.get(i));
-                } else {
+                }
+                else {
                     gui.clear(slot); // Make sure empty slots are empty
                 }
             }
@@ -174,42 +178,28 @@ public class GuiManager {
     }
 
     // Helper method to create GUI items
-    public static ItemStack createGuiItem(Material material, Component name, List<Component> lore) {
+    public static ItemStack createGuiItem(Material material, Component name, List<Component> lore){
         ItemStack item = new ItemStack(material, 1);
         ItemMeta meta = item.getItemMeta();
-        if (meta != null) {
+        if(meta != null){
             // Set the display name and lore
             meta.displayName(name);
-            lore = lore.stream().filter(Component.IS_NOT_EMPTY).toList(); // Filter out empty components
-            meta.lore(lore);
+            var filteredLore = lore.stream().filter(Component.IS_NOT_EMPTY).toList(); // Filter out empty components
+            meta.lore(filteredLore);
             item.setItemMeta(meta);
         }
         return item;
     }
 
-    // Helper method to create GUI items
-    public static ItemStack createGuiItem(Material material, String name, List<String> lore, int amount) {
-        ItemStack item = new ItemStack(material, amount);
-        ItemMeta meta = item.getItemMeta();
-        if (meta != null) {
-            // meta.setDisplayName(name);
-            // meta.setLore(lore);
-            meta.displayName(Component.text(name));
-            meta.lore(lore.stream().map(Component::text).toList());
-            item.setItemMeta(meta);
-        }
-        return item;
-    }
-
-    public void clearInventory(Inventory inv) {
+    public void clearInventory(Inventory inv){
         inv.clear(); // Clear the inventory
     }
 
-    public static void markIgnoreClose(UUID playerId) {
+    public static void markIgnoreClose(UUID playerId){
         ignoreNextClose.add(playerId);
     }
 
-    public static boolean shouldIgnoreClose(UUID playerId) {
+    public static boolean shouldIgnoreClose(UUID playerId){
         // should ignore close if the playerId is in the set and remove it to prevent
         // multiple ignores
         return ignoreNextClose.remove(playerId);

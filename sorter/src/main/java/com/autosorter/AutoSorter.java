@@ -9,58 +9,54 @@ import com.autosorter.listeners.RoutingListener;
 import com.autosorter.listeners.WandListener;
 import com.autosorter.model.RouterManager;
 import com.autosorter.utils.ChestPersistenceManager;
-import com.autosorter.utils.ChestPersistenceManager.SetTransfer;
+import com.autosorter.utils.ChestPersistenceManager.RoutingDataRecord;
 
 import java.io.IOException;
+import java.util.Objects;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class AutoSorter extends JavaPlugin {
+public class AutoSorter extends JavaPlugin{
 
     private ChestDataManager chestDataManager;
-    private GuiManager guiManager;
-    private RouterManager routerManager;
     private ChestPersistenceManager persistenceManager;
 
     @Override
-    public void onEnable() {
+    public void onEnable(){
         getLogger().info("AutoSorter is enabling!");
         // Load configuration if needed
-        if (!getDataFolder().exists()) {
+        if(!getDataFolder().exists())
             getDataFolder().mkdirs();
-        }
         // int intervalMinutes = getConfig().getInt("backup-interval-minutes", 10);
         this.persistenceManager = new ChestPersistenceManager(this);
         // Load existing chest data
-        SetTransfer chestSets = null;
+        RoutingDataRecord routingDataRecord;
         try {
-            chestSets = persistenceManager.loadChestsAndRouting();
-        } catch (IOException e) {
+            routingDataRecord = persistenceManager.loadChestsAndRouting();
+        } catch(IOException e){
             getLogger().severe("Failed to load chest data: " + e.getMessage());
             return;
         }
+
         // Initialize Managers
         this.chestDataManager = new ChestDataManager(
-                this,
-                chestSets.getInputChests(),
-                chestSets.getReceiverChestsFilterMap(),
-                chestSets.getOverflowChests());
-        this.guiManager = new GuiManager(this, this.chestDataManager);
-        this.routerManager = new RouterManager(this, this.chestDataManager);
+                routingDataRecord.inputChests(),
+                routingDataRecord.receiverChestsFilterMap(),
+                routingDataRecord.overflowChests());
+        GuiManager guiManager = new GuiManager(this.chestDataManager);
+        RouterManager routerManager = new RouterManager(this, this.chestDataManager);
 
         // Register Commands
 
-        // Register Sorter Command might be replaced with a costume item instad of a
-        // command.
-        getCommand("sortchest")
-                .setExecutor(new SorterCommand(this, this.guiManager));
+        // Register Sorter Command might be replaced with a costume item instead of a command.
+        Objects.requireNonNull(getCommand("sortchest")).setExecutor(new SorterCommand(this, guiManager));
 
         // Register Listeners
 
         // Register GUI Listener
         getServer()
                 .getPluginManager()
-                .registerEvents(new GuiListener(this, this.chestDataManager, this.guiManager), this);
+                .registerEvents(new GuiListener(this, this.chestDataManager, guiManager), this);
 
         // Register Chest Breaking Listener
         getServer()
@@ -73,29 +69,27 @@ public class AutoSorter extends JavaPlugin {
                 .registerEvents(new RoutingListener(this, chestDataManager, routerManager), this);
 
         // Register Wand Listener
-        getServer().getPluginManager().registerEvents(new WandListener(this, this.guiManager), this);
+        getServer()
+                .getPluginManager()
+                .registerEvents(new WandListener(guiManager), this);
     }
 
     @Override
-    public void onDisable() {
+    public void onDisable(){
         try {
             backupChests();
-        } catch (IOException e) {
+        } catch(IOException e){
             getLogger().severe("Failed to save chest data: " + e.getMessage());
         }
         getLogger().info("AutoSorter is disabling.");
     }
 
     // Add getters if other classes need them
-    public ChestDataManager getChestDataManager() {
+    public ChestDataManager getChestDataManager(){
         return chestDataManager;
     }
 
-    public GuiManager getGuiManager() {
-        return guiManager;
-    }
-
-    public void backupChests() throws IOException {
+    public void backupChests() throws IOException{
         // Save any data if needed
         var inputChests = this.chestDataManager.getInputChests();
         var receiverChests = this.chestDataManager.getReceiverChestsFilterMap();
