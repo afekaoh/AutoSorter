@@ -6,6 +6,7 @@ import org.bukkit.block.Chest;
 import org.bukkit.block.DoubleChest;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -98,5 +99,21 @@ public class SmartChest{
             return (Chest) this.doubleChest.getLeftSide();
         }
         return null;
+    }
+
+    public boolean canReceiveItem(ItemStack itemToTransfer){
+        int firstEmpty = getInventory().firstEmpty();
+        if(firstEmpty >= 0){
+            return true; // Chest has space
+        }
+        var contents = getInventory().getContents();
+        for(ItemStack itemInChest : contents){
+
+            if(itemInChest != null && itemInChest.isSimilar(itemToTransfer)
+               && itemInChest.getAmount() < itemInChest.getMaxStackSize()){
+                return true; // Chest has space for this material
+            }
+        }
+        return false; // No space for this material
     }
 }

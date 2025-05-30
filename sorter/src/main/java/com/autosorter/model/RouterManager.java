@@ -50,8 +50,7 @@ public class RouterManager{
                         break; // only route one item per tick to avoid spikes
                     }
                     else {
-                        // If we can't route, we should move it to overflow or mark it for
-                        // manualhandling
+                        // If we can't route, we should move it to overflow or mark it for manual handling
                         boolean overflowed = tryRouteItemToOverFlow(single);
                         if(overflowed){
                             item.setAmount(item.getAmount() - 1);
@@ -72,7 +71,7 @@ public class RouterManager{
 
     public boolean tryRouteItemToReceiver(ItemStack item){
 
-        return tryRouteItemToTarget(item, dataManager.getBestRoutingTargetReciver(item));
+        return tryRouteItemToTarget(item, dataManager.getBestRoutingTargetReceiver(item));
     }
 
     public boolean tryRouteItemToOverFlow(ItemStack item){

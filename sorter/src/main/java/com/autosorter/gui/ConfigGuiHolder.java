@@ -1,5 +1,6 @@
 package com.autosorter.gui;
 
+import com.autosorter.gui.enums.GuiMenuType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 
@@ -10,9 +11,19 @@ public class ConfigGuiHolder implements InventoryHolder{
 
     private final SmartChest chest;
     private Inventory inventory; // We'll set this when creating it
+    private GuiMenuType menuType;
+    private final boolean confirmClearFilters;
 
-    public ConfigGuiHolder(SmartChest chest){
+    public ConfigGuiHolder(SmartChest chest, GuiMenuType type){
         this.chest = chest;
+        this.menuType = type;
+        this.confirmClearFilters = false; // Default to false if not specified
+    }
+
+    public ConfigGuiHolder(SmartChest chest, GuiMenuType type, boolean confirmClearFilters){
+        this.chest = chest;
+        this.menuType = type;
+        this.confirmClearFilters = confirmClearFilters;
     }
 
     public SmartChest getChest(){
@@ -28,8 +39,21 @@ public class ConfigGuiHolder implements InventoryHolder{
         return inventory;
     }
 
+    public GuiMenuType getMenuType(){
+        return menuType;
+    }
+
+    public void setMenuType(GuiMenuType menuType){
+        this.menuType = menuType;
+    }
+
     // We need a way to set the inventory after creation
     public void setInventory(Inventory inventory){
         this.inventory = inventory;
     }
+
+    public boolean isConfirmClearFilters(){
+        return confirmClearFilters;
+    }
+
 }

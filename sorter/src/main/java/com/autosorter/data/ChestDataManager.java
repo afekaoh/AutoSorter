@@ -89,8 +89,6 @@ public class ChestDataManager{
         }
         // Update the map with the new filters
         receiverChestsFilterMap.put(chest, ourChestsfilterList);
-        // Update routing for this chest
-        updateRoutingForChest(chest);
     }
 
     public List<ItemStack> getFilters(SmartChest chest){
@@ -166,13 +164,13 @@ public class ChestDataManager{
 
     }
 
-    public SmartChest getBestRoutingTargetReciver(ItemStack item){
+    public SmartChest getBestRoutingTargetReceiver(ItemStack item){
         var chests = routingMap.get(item.getType());
         if(chests == null || chests.isEmpty()){
             return null; // No chests available for this material
         }
         return chests.stream()
-                     .filter(c -> hasEmptySpace(item, c))
+                     .filter(c -> c.canReceiveItem(item))
                      .min(Comparator.comparing((SmartChest c) -> c.getLocation().getWorld().getName())
                                     .thenComparing(c -> c.getLocation().getBlockY())
                                     .thenComparing(c -> c.getLocation().getBlockX())
@@ -180,27 +178,12 @@ public class ChestDataManager{
                      .orElse(null);
     }
 
-    private boolean hasEmptySpace(ItemStack itemToSort, SmartChest c){
-        int firstEmpty = c.getInventory().firstEmpty();
-        if(firstEmpty >= 0){
-            return true; // Chest has space
-        }
-        var contents = c.getInventory().getContents();
-        for(ItemStack item : contents){
-
-            if(item != null && item.isSimilar(itemToSort) && item.getAmount() < item.getMaxStackSize()){
-                return true; // Chest has space for this material
-            }
-        }
-        return false; // No space for this material
-    }
-
     public SmartChest getBestRoutingTargetOverFlow(ItemStack itemToSort){
         if(overflowChests.isEmpty()){
             return null; // No overflow chests available
         }
         return overflowChests.stream()
-                             .filter(c -> hasEmptySpace(itemToSort, c))
+                             .filter(c -> c.canReceiveItem(itemToSort))
                              .min(Comparator.comparing((SmartChest c) -> c.getLocation().getWorld().getName())
                                             .thenComparing(c -> c.getLocation().getBlockY())
                                             .thenComparing(c -> c.getLocation().getBlockX())
@@ -226,6 +209,24 @@ public class ChestDataManager{
         }
         inputChests.remove(chest);
         overflowChests.remove(chest);
-        receiverChestsFilterMap.remove(chest);
+        var filters = receiverChestsFilterMap.remove(chest);
+        if(filters != null && !filters.isEmpty()){
+            filters.forEach(item -> {
+                if(item != null && item.getType() != Material.AIR){
+                    // Optionally drop the filter items in the world
+                    chest.getLocation().getWorld().dropItemNaturally(chest.getLocation(), item.clone());
+                }
+            });
+        }
+    }
+
+    public Set<ItemStack> clearFilters(SmartChest chest){
+//        Set<ItemStack> removedFilters = receiverChestsFilterMap.remove(chest);
+        Set<ItemStack> currentFilters = new HashSet<>(receiverChestsFilterMap.get(chest));
+        if(currentFilters != null && !currentFilters.isEmpty()){
+            receiverChestsFilterMap.get(chest).clear(); // Clear the existing filters
+            updateRoutingForChest(chest); // Update routing after clearing filters
+        }
+        return currentFilters;
     }
 }
