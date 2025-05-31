@@ -45,7 +45,6 @@ public class GuiListener implements Listener{
         if(!(event.getWhoClicked() instanceof Player)) return;
         if(event.getClickedInventory() == null) return; // Ignore clicks outside any inventory
 
-        SmartChest chest = holder.getChest();
         GuiMenuType menu = holder.getMenuType();
 
         switch(menu){

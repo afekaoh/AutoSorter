@@ -223,7 +223,7 @@ public class ChestDataManager{
     public Set<ItemStack> clearFilters(SmartChest chest){
 //        Set<ItemStack> removedFilters = receiverChestsFilterMap.remove(chest);
         Set<ItemStack> currentFilters = new HashSet<>(receiverChestsFilterMap.get(chest));
-        if(currentFilters != null && !currentFilters.isEmpty()){
+        if(!currentFilters.isEmpty()){
             receiverChestsFilterMap.get(chest).clear(); // Clear the existing filters
             updateRoutingForChest(chest); // Update routing after clearing filters
         }

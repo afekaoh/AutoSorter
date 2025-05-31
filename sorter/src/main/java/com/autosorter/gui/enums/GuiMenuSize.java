@@ -25,7 +25,7 @@ public enum GuiMenuSize{
             case SETTINGS -> SETTINGS;
             case SYSTEM_SELECTOR -> SYSTEM_SELECTOR;
             case INFO -> INFO;
-            default -> throw new IllegalArgumentException("Unknown GuiMenuType: " + type);
+            default -> throw new IllegalArgumentException("Unknown GuiMenuType: " + type); // Default case for safety
         };
     }
 }

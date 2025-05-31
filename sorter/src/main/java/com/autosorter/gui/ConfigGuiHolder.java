@@ -11,7 +11,7 @@ public class ConfigGuiHolder implements InventoryHolder{
 
     private final SmartChest chest;
     private Inventory inventory; // We'll set this when creating it
-    private GuiMenuType menuType;
+    private final GuiMenuType menuType;
     private final boolean confirmClearFilters;
 
     public ConfigGuiHolder(SmartChest chest, GuiMenuType type){
@@ -41,10 +41,6 @@ public class ConfigGuiHolder implements InventoryHolder{
 
     public GuiMenuType getMenuType(){
         return menuType;
-    }
-
-    public void setMenuType(GuiMenuType menuType){
-        this.menuType = menuType;
     }
 
     // We need a way to set the inventory after creation

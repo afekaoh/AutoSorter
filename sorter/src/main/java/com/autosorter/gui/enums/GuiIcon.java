@@ -15,10 +15,9 @@ public enum GuiIcon{
     INFO(Material.BOOK),
     PRIORITY(Material.COMPARATOR), // For future use, currently not implemented
     SAVE(Material.WRITABLE_BOOK),
-    RETURN(Material.ARROW),
     CLEAR(Material.BARRIER),
     EXIT(Material.DARK_OAK_DOOR),
-    PLAYER(Material.PLAYER_HEAD),
+    PLAYER(Material.PLAYER_HEAD), // For future use, currently not implemented
     CONFIRM(Material.LIME_CONCRETE),
     CANCEL(Material.RED_CONCRETE),
     FILLER(Material.GRAY_STAINED_GLASS_PANE),

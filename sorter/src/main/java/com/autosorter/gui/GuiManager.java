@@ -15,7 +15,6 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.checkerframework.checker.units.qual.C;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -229,15 +228,12 @@ public class GuiManager{
                 List.of(
                         Component.text("Click to save changes and return to the main menu.", NamedTextColor.GRAY)
                        )));
-
-        Bukkit.getLogger().info("[populate] Got " + filters.size() + " filters for " + chest.getLocation() +
-                                ", confirmClearFilters=" + showConfirmation);
     }
 
     private void populateSystemSelectorMenu(InventoryHolder holder, int page){
+        // this method can be extended for pagination not supported yet
         if(!(holder instanceof ConfigGuiHolder configHolder)) return;
         Inventory gui = configHolder.getInventory();
-        SmartChest chest = configHolder.getChest();
 
         gui.clear();
 
@@ -308,7 +304,7 @@ public class GuiManager{
                 case RECEIVER -> createGuiItem(GuiIcon.TYPE_RECEIVER.material(), name, lore);
                 case OVERFLOW -> createGuiItem(GuiIcon.TYPE_OVERFLOW.material(), name, lore);
                 case NONE -> createGuiItem(GuiIcon.TYPE_NONE.material(), name, lore);
-                default -> null;
+                default -> null; // Should never happen
             };
 
             gui.setItem(slot, icon);
